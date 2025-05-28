@@ -2,6 +2,10 @@
 
 A responsive and interactive Password Generator built using **HTML, CSS, and JavaScript**. This app allows users to generate secure passwords based on customizable criteria such as length, uppercase/lowercase letters, numbers, and symbols.
 
+## 🌐 Live Demo
+
+> []
+
 ## 🚀 Features
 
 - Adjust password length using a slider (1 to 20 characters)
