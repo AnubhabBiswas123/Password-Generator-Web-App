@@ -1,5 +1,5 @@
-const inputSlider = document.querySelector("[data-lengthSlider]");
-const lengthDisplay = document.querySelector("[data-lengthNumber]");
+let inputSlider= document.querySelector('[data-lengthSlider]');
+const lengthDisplay = document.querySelector("[data-length]");
 
 const passwordDisplay = document.querySelector("[data-passwordDisplay]");
 const copyBtn = document.querySelector("[data-copy]");
@@ -14,49 +14,48 @@ const allCheckBox = document.querySelectorAll("input[type=checkbox]");
 const symbols = '~`!@#$%^&*()_-+={[}]|:;"<,>.?/';
 
 
-//initially
-let password = "";
-let passwordLength = 10;
-let checkCount = 0;
-handleSlider();
-//ste strength circle color to grey
+let password=""; //because password is initially empty
+let passwordLength=10; //because by default count is 10
+let checkCount=0;
 setIndicator("#ccc");
-
-
-//set passwordLength
-function handleSlider() {
-    inputSlider.value = passwordLength;
-    lengthDisplay.innerText = passwordLength;
-    //or kuch bhi karna chahiye ? - HW
-    const min = inputSlider.min;
-    const max = inputSlider.max;
-    inputSlider.style.backgroundSize = ( (passwordLength - min)*100/(max - min)) + "% 100%"
+function handleSlider()
+{
+  inputSlider.value=passwordLength; //Because initially slider 10 pe hai
+  lengthDisplay.textContent=passwordLength; //Because initial value 10 par hai
+   const min = inputSlider.min;
+  const max = inputSlider.max;
+  const percent = ((passwordLength - min) * 100) / (max - min);
+  
+  inputSlider.style.background = `linear-gradient(to right, var(--vb-violet) ${percent}%, var(--lt-violet) ${percent}%)`;
 }
+handleSlider();
 
-function setIndicator(color) {
-    indicator.style.backgroundColor = color;
-    indicator.style.boxShadow = `0px 0px 12px 1px ${color}`;
+function setIndicator(color)
+{
+  indicator.style.backgroundColor=color;
+  indicator.style.boxShadow = `0 0 5px 2px ${color}`;
+
 }
-
-function getRndInteger(min, max) {
-    return Math.floor(Math.random() * (max - min)) + min;
+function getRndInteger(max,min)
+{
+  return Math.floor(Math.random()*(max-min))+min;
 }
-
-function generateRandomNumber() {
-    return getRndInteger(0,9);
+function generateRandomNumber()
+{
+  return getRndInteger(0,9);
 }
-
-function generateLowerCase() {  
-       return String.fromCharCode(getRndInteger(97,123))
+function generateLowerCase()
+{
+  return String.fromCharCode(getRndInteger(97,123));
 }
-
-function generateUpperCase() {  
-    return String.fromCharCode(getRndInteger(65,91))
+function generateUpperCase()
+{
+  return String.fromCharCode(getRndInteger(60,91));
 }
-
-function generateSymbol() {
-    const randNum = getRndInteger(0, symbols.length);
-    return symbols.charAt(randNum);
+function generateSymbol()
+{
+  let v=getRndInteger(0,symbols.length);
+  return symbols.charAt(v);
 }
 
 function calcStrength() {
@@ -82,24 +81,83 @@ function calcStrength() {
     }
 }
 
-async function copyContent() {
-    try {
-        await navigator.clipboard.writeText(passwordDisplay.value);
-        copyMsg.innerText = "copied";
-    }
-    catch(e) {
-        copyMsg.innerText = "Failed";
-    }
-    //to make copy wala span visible
-    copyMsg.classList.add("active");
+async function copyContent(){
+  try{
+    await navigator.clipboard.writeText(passwordDisplay.value);
+    copyMsg.innerText='copied';
+  }
+  catch(e)
+  {
+    copyMsg.innerText='failed';
+  }
+  copyMsg.classList.add("active");
+  setTimeout(()=> {
+      copyMsg.classList.remove("active");
 
-    setTimeout( () => {
-        copyMsg.classList.remove("active");
-    },2000);
-
+  },2000);
 }
 
-function shufflePassword(array) {
+inputSlider.addEventListener('input',(e)=> {
+passwordLength=e.target.value;
+handleSlider();
+});
+
+copyBtn.addEventListener('click',()=>{
+  if(passwordDisplay.value)
+    copyContent();
+})
+function fun()
+{
+  checkCount=0;
+  allCheckBox.forEach((checkbox)=>
+  {
+    if(checkbox.checked)
+      checkCount++;
+    
+  });
+  if(passwordLength<checkCount)
+  {
+    passwordLength=checkCount;
+    handleSlider();
+  }
+}
+allCheckBox.forEach((check)=>{
+  check.addEventListener('change',fun);
+}
+)
+
+generateBtn.addEventListener('click',()=>{
+  if(checkCount==0)
+    return;
+  if(passwordLength<checkCount)
+  {
+    passwordLength=checkCount;
+    handleSlider();
+  }
+  password="";//purane password ko khali kardiya
+  /*
+  if(uppercaseCheck.checked)
+    password+=generateUpperCase();
+
+  if(lowercaseCheck.checked)
+    password+=generateLowerCase();
+
+  if(numbersCheck.checked)
+    password+=generateRandomNumber();
+
+  if(symbolsCheck.checked)
+    password+=generateSymbol();
+  */
+ let funArray=[];
+ if(uppercaseCheck.checked)
+    funArray.push(generateUpperCase);
+ if(lowercaseCheck.checked)
+    funArray.push(generateLowerCase);
+  if(numbersCheck.checked)
+    funArray.push(generateRandomNumber);
+  if(symbolsCheck.checked)
+    funArray.push(generateSymbol);
+  function shuffle(array) {
     //Fisher Yates Method
     for (let i = array.length - 1; i > 0; i--) {
         //random J, find out using random function
@@ -113,104 +171,17 @@ function shufflePassword(array) {
     array.forEach((el) => (str += el));
     return str;
 }
-
-function handleCheckBoxChange() {
-    checkCount = 0;
-    allCheckBox.forEach( (checkbox) => {
-        if(checkbox.checked)
-            checkCount++;
-    });
-
-    //special condition
-    if(passwordLength < checkCount ) {
-        passwordLength = checkCount;
-        handleSlider();
-    }
+for(let i=0;i<funArray.length;i++)
+{
+  password+=funArray[i]();
 }
 
-allCheckBox.forEach( (checkbox) => {
-    checkbox.addEventListener('change', handleCheckBoxChange);
+for(let i=0;i<passwordLength-funArray.length;i++)
+{
+  let rndi=getRndInteger(0,funArray.length);
+  password+=funArray[rndi]();
+}
+password=shuffle(Array.from(password));
+passwordDisplay.value=password;
+calcStrength();
 })
-
-
-inputSlider.addEventListener('input', (e) => {
-    passwordLength = e.target.value;
-    handleSlider();
-})
-
-
-copyBtn.addEventListener('click', () => {
-    if(passwordDisplay.value)
-        copyContent();
-})
-
-generateBtn.addEventListener('click', () => {
-    //none of the checkbox are selected
-
-    if(checkCount == 0) 
-        return;
-
-    if(passwordLength < checkCount) {
-        passwordLength = checkCount;
-        handleSlider();
-    }
-
-    // let's start the jouney to find new password
-    console.log("Starting the Journey");
-    //remove old password
-    password = "";
-
-    //let's put the stuff mentioned by checkboxes
-
-    // if(uppercaseCheck.checked) {
-    //     password += generateUpperCase();
-    // }
-
-    // if(lowercaseCheck.checked) {
-    //     password += generateLowerCase();
-    // }
-
-    // if(numbersCheck.checked) {
-    //     password += generateRandomNumber();
-    // }
-
-    // if(symbolsCheck.checked) {
-    //     password += generateSymbol();
-    // }
-
-    let funcArr = [];
-
-    if(uppercaseCheck.checked)
-        funcArr.push(generateUpperCase);
-
-    if(lowercaseCheck.checked)
-        funcArr.push(generateLowerCase);
-
-    if(numbersCheck.checked)
-        funcArr.push(generateRandomNumber);
-
-    if(symbolsCheck.checked)
-        funcArr.push(generateSymbol);
-
-    //compulsory addition
-    for(let i=0; i<funcArr.length; i++) {
-        password += funcArr[i]();
-    }
-    console.log("COmpulsory adddition done");
-
-    //remaining adddition
-    for(let i=0; i<passwordLength-funcArr.length; i++) {
-        let randIndex = getRndInteger(0 , funcArr.length);
-        console.log("randIndex" + randIndex);
-        password += funcArr[randIndex]();
-    }
-    console.log("Remaining adddition done");
-    //shuffle the password
-    password = shufflePassword(Array.from(password));
-    console.log("Shuffling done");
-    //show in UI
-    passwordDisplay.value = password;
-    console.log("UI adddition done");
-    //calculate strength
-    calcStrength();
-});
